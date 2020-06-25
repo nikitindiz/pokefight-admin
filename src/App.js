@@ -15,7 +15,9 @@ const fakeFetch = (endpointUrl, dataPayload /* { username, password } */) => {
   };
 
   const promise = new Promise((res, rej) => {
-    res(testUser);
+    setTimeout(() => {
+      res(testUser);
+    }, 3000);
   });
 
   return promise;
@@ -25,6 +27,7 @@ const AuthorizedContainer = (props) => {
   const [ user, changeUser ] = useState(null);
   const [ formLogin, changeFormLoginValue ] = useState('');
   const [ formPassword, changeFormPasswordValue ] = useState('');
+  const [ fetching, setFetching ] = useState(false);
 
   const onLoginChange = (event) => {
     changeFormLoginValue(event.target.value);
@@ -35,6 +38,8 @@ const AuthorizedContainer = (props) => {
   }
 
   const onLoginFormSubmit = () => {
+    setFetching(true);
+
     fakeFetch('http://mybackend.com/login', {
       method: 'POST',
       body: JSON.stringify({
@@ -47,6 +52,8 @@ const AuthorizedContainer = (props) => {
       } else {
         changeUser(null);
       }
+
+      setFetching(false);
     });
   };
 
@@ -62,6 +69,7 @@ const AuthorizedContainer = (props) => {
           value={formLogin}
           label="User Name"
           onChange={onLoginChange}
+          disabled={fetching}
         />
 
         <br/>
@@ -72,13 +80,17 @@ const AuthorizedContainer = (props) => {
           type="password"
           label="Password"
           onChange={onPasswordChange}
+          disabled={fetching}
         />
 
         <br/>
         <br/>
         <br/>
 
-        <Button onClick={onLoginFormSubmit}>
+        <Button
+          onClick={onLoginFormSubmit}
+          disabled={fetching}
+        >
           Log in
         </Button>
       </Container>
