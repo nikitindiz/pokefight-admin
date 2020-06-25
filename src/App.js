@@ -35,7 +35,7 @@ const fakeFetch = (endpointUrl, dataPayload /* { username, password } */) => {
 };
 
 const AuthorizedContainer = (props) => {
-  let storedUser = localStorage.getItem('user');
+  let storedUser = JSON.parse(localStorage.getItem('user'));
 
   const [ user, changeUser ] = useState(storedUser);
   const [ formLogin, changeFormLoginValue ] = useState('');
