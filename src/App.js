@@ -1,24 +1,97 @@
-import React from 'react';
-import logo from './logo.svg';
+import React, { useState } from 'react';
+import CssBaseline from '@material-ui/core/CssBaseline';
+import TextField from '@material-ui/core/TextField';
+import Button from '@material-ui/core/Button';
+import Container from '@material-ui/core/Container';
 import './App.css';
 
-function App() {
+const fakeFetch = (endpointUrl, dataPayload /* { username, password } */) => {
+  console.log('Fetch url', endpointUrl);
+  console.log('Fetch payload', dataPayload.body);
+
+  const testUser = {
+    firstName: 'Alex',
+    lastName: 'Nikitin'
+  };
+
+  const promise = new Promise((res, rej) => {
+    res(testUser);
+  });
+
+  return promise;
+};
+
+const AuthorizedContainer = (props) => {
+  const [ user, changeUser ] = useState(null);
+  const [ formLogin, changeFormLoginValue ] = useState('');
+  const [ formPassword, changeFormPasswordValue ] = useState('');
+
+  const onLoginChange = (event) => {
+    changeFormLoginValue(event.target.value);
+  }
+
+  const onPasswordChange = (event) => {
+    changeFormPasswordValue(event.target.value);
+  }
+
+  const onLoginFormSubmit = () => {
+    fakeFetch('http://mybackend.com/login', {
+      method: 'POST',
+      body: JSON.stringify({
+        username: formLogin,
+        password: formPassword
+      }),
+    }).then(user => {
+      if (user) {
+        changeUser(user);
+      } else {
+        changeUser(null);
+      }
+    });
+  };
+
+  if (user) {
+    return <div>{props.children}</div>
+  }
+
+  return (
+    <React.Fragment>
+      <CssBaseline />
+      <Container maxWidth="sm" style={{ padding: 20, textAlign: 'center' }}>
+        <TextField
+          value={formLogin}
+          label="User Name"
+          onChange={onLoginChange}
+        />
+
+        <br/>
+        <br/>
+
+        <TextField
+          value={formPassword}
+          type="password"
+          label="Password"
+          onChange={onPasswordChange}
+        />
+
+        <br/>
+        <br/>
+        <br/>
+
+        <Button onClick={onLoginFormSubmit}>
+          Log in
+        </Button>
+      </Container>
+    </React.Fragment>
+  );
+};
+
+const App = () => {
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <AuthorizedContainer>
+        You are logged in!
+      </AuthorizedContainer>
     </div>
   );
 }
