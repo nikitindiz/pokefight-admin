@@ -5,34 +5,6 @@ import Button from '@material-ui/core/Button';
 import Container from '@material-ui/core/Container';
 import './App.css';
 
-const fakeFetch = (endpointUrl, dataPayload /* { username, password } */) => {
-  console.log('Fetch url', endpointUrl);
-  console.log('Fetch payload', dataPayload.body);
-
-  const etalonValues = {
-    username: 'admin',
-    password: '12345'
-  };
-
-  const testUser = {
-    firstName: 'Alex',
-    lastName: 'Nikitin'
-  };
-
-  const promise = new Promise((res, rej) => {
-    setTimeout(() => {
-      const user = JSON.parse(dataPayload.body);
-
-      if (etalonValues.password === user.password && etalonValues.username === user.username) {
-        res(testUser);
-      } else {
-        res(null);
-      }
-    }, 3000);
-  });
-
-  return promise;
-};
 
 const AuthorizedContainer = (props) => {
   let storedUser = JSON.parse(localStorage.getItem('user'));
@@ -53,17 +25,20 @@ const AuthorizedContainer = (props) => {
   const onLoginFormSubmit = () => {
     setFetching(true);
 
-    fakeFetch('http://mybackend.com/login', {
+    fetch('https://frozen-sands-71650.herokuapp.com/login', {
       method: 'POST',
       body: JSON.stringify({
         username: formLogin,
         password: formPassword
       }),
-    }).then(user => {
+      headers: { "Content-Type": "application/json" }
+    })
+    .then(response => response.json()) // ADDED!!!
+    .then(user => {
       // user is an additional
       // info from server,
       // not a password and username!!!
-      if (user) {
+      if (user.firstName) {
         const userAsString = JSON.stringify(user);
         localStorage.setItem('user', userAsString);
 
@@ -73,7 +48,11 @@ const AuthorizedContainer = (props) => {
       }
 
       setFetching(false);
-    });
+    })
+    .catch(err => {
+      console.log(err.message)
+    })
+    ;
   };
 
   if (user) {
