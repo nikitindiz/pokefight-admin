@@ -9,6 +9,11 @@ const fakeFetch = (endpointUrl, dataPayload /* { username, password } */) => {
   console.log('Fetch url', endpointUrl);
   console.log('Fetch payload', dataPayload.body);
 
+  const etalonValues = {
+    username: 'admin',
+    password: '12345'
+  };
+
   const testUser = {
     firstName: 'Alex',
     lastName: 'Nikitin'
@@ -16,7 +21,13 @@ const fakeFetch = (endpointUrl, dataPayload /* { username, password } */) => {
 
   const promise = new Promise((res, rej) => {
     setTimeout(() => {
-      res(testUser);
+      const user = JSON.parse(dataPayload.body);
+
+      if (etalonValues.password === user.password && etalonValues.username === user.username) {
+        res(testUser);
+      } else {
+        res(null);
+      }
     }, 3000);
   });
 
@@ -24,7 +35,9 @@ const fakeFetch = (endpointUrl, dataPayload /* { username, password } */) => {
 };
 
 const AuthorizedContainer = (props) => {
-  const [ user, changeUser ] = useState(null);
+  let storedUser = localStorage.getItem('user');
+
+  const [ user, changeUser ] = useState(storedUser);
   const [ formLogin, changeFormLoginValue ] = useState('');
   const [ formPassword, changeFormPasswordValue ] = useState('');
   const [ fetching, setFetching ] = useState(false);
@@ -47,7 +60,13 @@ const AuthorizedContainer = (props) => {
         password: formPassword
       }),
     }).then(user => {
+      // user is an additional
+      // info from server,
+      // not a password and username!!!
       if (user) {
+        const userAsString = JSON.stringify(user);
+        localStorage.setItem('user', userAsString);
+
         changeUser(user);
       } else {
         changeUser(null);
