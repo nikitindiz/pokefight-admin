@@ -7,12 +7,14 @@ import './App.css';
 
 
 const AuthorizedContainer = (props) => {
-  let storedUser = JSON.parse(localStorage.getItem('user'));
+  const token = localStorage.getItem('token');
 
-  const [ user, changeUser ] = useState(storedUser);
+  const [ authResult, updateAuthResult ] = useState({ token });
   const [ formLogin, changeFormLoginValue ] = useState('');
   const [ formPassword, changeFormPasswordValue ] = useState('');
   const [ fetching, setFetching ] = useState(false);
+
+  const [ fetchError, setFetchError ] = useState(null);
 
   const onLoginChange = (event) => {
     changeFormLoginValue(event.target.value);
@@ -25,7 +27,7 @@ const AuthorizedContainer = (props) => {
   const onLoginFormSubmit = () => {
     setFetching(true);
 
-    fetch('https://frozen-sands-71650.herokuapp.com/login', {
+    fetch('http://localhost:8080/login', {
       method: 'POST',
       body: JSON.stringify({
         username: formLogin,
@@ -33,18 +35,16 @@ const AuthorizedContainer = (props) => {
       }),
       headers: { "Content-Type": "application/json" }
     })
-    .then(response => response.json()) // ADDED!!!
-    .then(user => {
-      // user is an additional
-      // info from server,
-      // not a password and username!!!
-      if (user.firstName) {
-        const userAsString = JSON.stringify(user);
-        localStorage.setItem('user', userAsString);
+    .then(response => response.json())
+    .then(authResponse => {
+      // authResponse - { error, token }
 
-        changeUser(user);
+      if (authResponse.error) {
+        setFetchError(authResponse.error);
       } else {
-        changeUser(null);
+        const { token } = authResponse;
+        localStorage.setItem('token', token);
+        updateAuthResult({ token });
       }
 
       setFetching(false);
@@ -55,8 +55,25 @@ const AuthorizedContainer = (props) => {
     ;
   };
 
-  if (user) {
-    return <div>{props.children}</div>
+  if (authResult.token) {
+    const encodedTokenPayload = authResult.token.split('.')[0];
+    const decodedTokenPayload = atob(encodedTokenPayload);
+    const userData = JSON.parse(decodedTokenPayload);
+
+    return (
+      <div>
+        username: {userData.username}
+        <br/>
+        firstName: {userData.firstName}
+        <br/>
+        lastName: {userData.lastName}
+        <br/>
+
+        <div>
+          {props.children}
+        </div>
+      </div>
+    );
   }
 
   return (
